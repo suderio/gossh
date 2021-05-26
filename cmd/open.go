@@ -22,24 +22,31 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
+	"os/exec"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var goshPort int16
-var goshFlags []string
-
 var openCmd = &cobra.Command{
 	Use:   "open",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Opens a connection to some host",
+	Long: `This is the main posh command, the equivalent of
+'ssh somehost.somedomain.com', with some niceties:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+* if you tagged your server, you may use them to connect
+> posh apache prd
+* if more than one host is tagged, a menu is shown
+> posh apache
+| There are two hosts tagged apache:
+| 1) apache.domain.com prd
+| 2) apache.dsv.domain.com dsv
+| Which one? 
+`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		checkSshExists()
 		goshHost := args[0]
 		viper.SetDefault("hosts", map[string]interface{}{
 			goshHost: map[string]interface{}{
@@ -50,8 +57,13 @@ to quickly create a Cobra application.`,
 
 func init() {
 	rootCmd.AddCommand(openCmd)
-
 	openCmd.Flags().Int16VarP(&goshPort, "port", "p", 22, "Connection port")
-
 	openCmd.Flags().StringArrayVarP(&goshFlags, "flags", "f", nil, "Connection flags")
+}
+
+func checkSshExists() {
+	_, err := exec.LookPath("ssh")
+	if err != nil {
+		fmt.Printf("Cannot find 'ssh' executable.\nGosh will work but no ssh connection will be available.\n")
+	}
 }

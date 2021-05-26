@@ -33,6 +33,8 @@ import (
 
 var cfgFile string
 var goshUser string
+var goshPort int16
+var goshFlags []string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -43,9 +45,10 @@ var rootCmd = &cobra.Command{
 	gosh some.host.com: connects with host some.host.com
 	gosh ls: lists all known hosts
 	gosh add some.host.com: adds some.host.com to the list of known hosts.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Args: cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		openCmd.Run(cmd, args)
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -62,6 +65,12 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gosh.yaml)")
+
+	user := viper.GetString("USER")
+	rootCmd.PersistentFlags().StringVarP(&goshUser, "user", "u", user, "Connection user")
+	viper.BindPFlag("user", rootCmd.PersistentFlags().Lookup("user"))
+	rootCmd.Flags().Int16VarP(&goshPort, "port", "p", 22, "Connection port")
+	rootCmd.Flags().StringArrayVarP(&goshFlags, "flags", "f", nil, "Connection flags")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -85,7 +94,4 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
-	user := viper.GetString("USER")
-	rootCmd.PersistentFlags().StringVarP(&goshUser, "user", "u", user, "Connection user")
-	viper.BindPFlag("user", rootCmd.PersistentFlags().Lookup("user"))
 }

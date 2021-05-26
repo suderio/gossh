@@ -1,0 +1,6 @@
+version: "3.4"
+services:
+  tests:
+    build: .
+    working_dir: /go/src/github.com/suderio/gosh
+    entrypoint: go test -v -covermode=count ./...

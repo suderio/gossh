@@ -25,4 +25,5 @@ import "github.com/suderio/gosh/cmd"
 
 func main() {
 	cmd.Execute()
+
 }
