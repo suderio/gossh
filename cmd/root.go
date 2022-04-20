@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 Paulo Suderio <paulo.suderio@gmail.com>
+Copyright © 2021 Paulo Suderio
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,29 +25,30 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/kevinburke/ssh_config"
 	"github.com/spf13/cobra"
+	"github.com/suderio/gossh/internal"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
-var goshUser string
-var goshPort int16
-var goshFlags []string
+var cfg *ssh_config.Config
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "gosh",
-	Short: "SSH with sugar",
-	Long: `Gosh is a command line application to easy the use of ssh connections:
+	Use:   "gossh",
+	Short: "A brief description of your application",
+	Long: `A longer description that spans multiple lines and likely contains
+examples and usage of using your application. For example:
 
-	gosh some.host.com: connects with host some.host.com
-	gosh ls: lists all known hosts
-	gosh add some.host.com: adds some.host.com to the list of known hosts.`,
-	Args: cobra.ExactArgs(1),
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
+	// Uncomment the following line if your bare application
+	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		openCmd.Run(cmd, args)
+		// TODO call ssh
 	},
 }
 
@@ -64,13 +65,11 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gosh.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gossh.yaml)")
 
-	user := viper.GetString("USER")
-	rootCmd.PersistentFlags().StringVarP(&goshUser, "user", "u", user, "Connection user")
-	viper.BindPFlag("user", rootCmd.PersistentFlags().Lookup("user"))
-	rootCmd.Flags().Int16VarP(&goshPort, "port", "p", 22, "Connection port")
-	rootCmd.Flags().StringArrayVarP(&goshFlags, "flags", "f", nil, "Connection flags")
+	// Cobra also supports local flags, which will only run
+	// when this action is called directly.
+	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -80,12 +79,13 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		// Find home directory.
-		home, err := homedir.Dir()
+		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".gosh" (without extension).
+		// Search config in home directory with name ".gossh" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".gosh")
+		viper.SetConfigType("yaml")
+		viper.SetConfigName(".gossh")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
@@ -94,4 +94,5 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
+	cfg = internal.SetUpConfig()
 }
