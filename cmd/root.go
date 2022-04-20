@@ -49,6 +49,7 @@ to quickly create a Cobra application.`,
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO call ssh
+		internal.Connect("127.0.0.1", 22, "user", "password", "/home/user/.ssh/known_hosts")
 	},
 }
 
